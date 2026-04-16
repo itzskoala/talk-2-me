@@ -4,13 +4,15 @@ An AI-powered conversational agent built with OpenAI and Gradio that simulates a
 
 ---
 
-## 🚀 TRY IT HERE!
+## TRY IT HERE!
 
 > (https://huggingface.co/spaces/holasoykoalo7/ai-me)
 
+This project uses a free version of Gemini, so if you get an error, the daily limit of API calls has been used up.
+
 ---
 
-## ✨ Features
+## Features
 
 - Chat interface built with Gradio
 - Powered by OpenAI GPT models
@@ -23,7 +25,7 @@ An AI-powered conversational agent built with OpenAI and Gradio that simulates a
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 - Python 3.10+
 - Gradio
