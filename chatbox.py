@@ -1,3 +1,8 @@
+#So the first thing to do is call dependencies
+#system prompt, user prompt, gradio ai for the UI, which AI model? Guardrails, tools?, json?, what will it be trained on? 
+# whenever it is confused just email me/send me an email summary at the end of every chat? 
+
+from dotenv import load_dotenv
 from openai import OpenAI
 import json
 import os
@@ -5,14 +10,11 @@ import requests
 from pypdf import PdfReader
 import gradio as gr
 from pydantic import BaseModel # Create a Pydantic model for the Evaluation
-from dotenv import load_dotenv
+
 
 load_dotenv(override=True)
 
-
 # For pushover
-
-
 
 pushover_user = os.getenv("PUSHOVER_USER")
 pushover_token = os.getenv("PUSHOVER_TOKEN")
@@ -88,30 +90,9 @@ record_unknown_question_json = {
 tools = [{"type": "function", "function": record_user_details_json},
         {"type": "function", "function": record_unknown_question_json}]
 
-# print("has GEMINI_API_KEY:", bool(os.getenv("GEMINI_API_KEY")))
-# print("has GOOGLE_API_KEY:", bool(os.getenv("GOOGLE_API_KEY")))
-# print("has GOOGLE_APPLICATION_CREDENTIALS:", bool(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")))
-# print("GEMINI_API_KEY:", repr(os.getenv("GEMINI_API_KEY")))
-# print("GOOGLE_API_KEY:", repr(os.getenv("GOOGLE_API_KEY")))
-
 class Me:
     def __init__(self):
-        # self.openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))    
-        api_key = os.getenv("GOOGLE_API_KEY", "").strip()
-        
-        # Prevent Google SDK from picking up credentials a second time
-        os.environ.pop("GOOGLE_API_KEY", None)
-        os.environ.pop("GEMINI_API_KEY", None)
-        os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
-        
-        self.openai = OpenAI(
-            api_key=api_key,
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-        )
-
-        # api_key = os.getenv("GOOGLE_API_KEY", "").strip()
-        
-                
+        self.openai = OpenAI()
         self.name = "Sri Kotala"
         self.file = ""
         self.summary = ""
@@ -193,7 +174,7 @@ class Me:
             {"role": "user", "content": self.evaluator_user_prompt(reply, message, history)},
         ]
         response = self.openai.beta.chat.completions.parse(
-            model="gemini-2.0-flash",
+            model="gpt-4o-mini",
             messages=messages,
             response_format=Me.Evaluation,
         )
@@ -204,51 +185,29 @@ class Me:
         updated_system_prompt += f"## Your attempted answer:\n{reply}\n\n"
         updated_system_prompt += f"## Reason for rejection:\n{feedback}\n\n"
         messages = [{"role": "system", "content": updated_system_prompt}] + history + [{"role": "user", "content": message}]
-        response = self.openai.chat.completions.create(model="gemini-2.0-flash", messages=messages, tools=tools)
+        response = self.openai.chat.completions.create(model="gpt-4o-mini", messages=messages, tools=tools)
 
         return response.choices[0].message.content
 
 
-
     def chat(self, message, history):
-        try:
-            system = self.system_prompt()
-            messages = [{"role": "system", "content": system}] + history + [
-                {"role": "user", "content": message}
-            ]
-            response = self.openai.chat.completions.create(
-                model="gemini-2.0-flash",
-                messages=messages,
-            )
-            reply = response.choices[0].message.content
+        system = self.system_prompt()
+        messages = [{"role": "system", "content": system}] + history + [{"role": "user", "content": message}]
+        response = self.openai.chat.completions.create(model="gpt-4o-mini", messages=messages)
+        reply =response.choices[0].message.content
 
-            if not reply:
-                reply = "Sorry, I couldn't generate a response. Please try again."
-
-            # evaluation = self.evaluate(reply, message, history)
-
-            # if evaluation.is_acceptable:
-            return reply
+        evaluation = self.evaluate(reply, message, history)
+        
+        if evaluation.is_acceptable:
+            print("Passed evaluation - returning reply")
+        else:
+            print("Failed evaluation - retrying")
+            print(evaluation.feedback)
+            reply = self.rerun(reply, message, history, evaluation.feedback)       
+        return reply
             
-            # return self.rerun(reply, message, history, evaluation.feedback)
-
-        except Exception as e:
-            return f"Error: {str(e)}"
-
-            
-
-# if __name__ == "__main__":
-#     me = Me()
-#     gr.ChatInterface(me.chat).launch(
-#         server_name="0.0.0.0",
-#         server_port=7860
-#     )
 
 if __name__ == "__main__":
     me = Me()
-    gr.ChatInterface(me.chat).launch(
-        server_name="0.0.0.0",
-        server_port=7860,
-        # share=True,
-        ssr_mode=False,
-    )
+    gr.ChatInterface(me.chat).launch()
+    
