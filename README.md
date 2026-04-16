@@ -6,7 +6,7 @@ An AI-powered conversational agent built with OpenAI and Gradio that simulates a
 
 ## 🚀 TRY IT HERE!
 
-> [https://huggingface.co/spaces/your-username/talk-2-me](https://huggingface.co/spaces/holasoykoalo7/ai-me)
+> (https://huggingface.co/spaces/holasoykoalo7/ai-me)
 
 ---
 
