@@ -8,12 +8,11 @@ An AI-powered conversational agent built with OpenAI and Gradio that simulates a
 
 > (https://huggingface.co/spaces/holasoykoalo7/ai-me)
 
-This project uses a free version of Gemini, so if you get an error, the daily limit of API calls has been used up.
-
 ---
 
 ## Features
 
+- Using Gemini-2.0-flash (1,500 requests per day and 15 requests per minute)
 - Chat interface built with Gradio
 - Powered by OpenAI GPT models
 - Personalized system prompt (acts as “me”)
